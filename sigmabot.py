@@ -28,18 +28,19 @@ async def ping(ctx):
     await ctx.channel.send('pong! {0}'.format(round(bot.latency,4)) + " ms")
 
 @bot.command()
+@bot.command()
 async def penis(ctx):
     userid = ctx.message.author.id
     name = bot.get_user(userid)
     random.seed(userid)
-    value = round(random.uniform(1,15),0)
+    value = round(random.uniform(1,15),2)
     penis = "8"
     for x in range(int(value)):
         penis += "="
     penis += "D"
-    embed = discord.Embed(title = f"{ctx.message.author}'s"+ " Penis Length :eggplant:", description = penis, colour = discord.Colour.green())
+    embed = discord.Embed(title = f"{ctx.message.author}'s"+ " Penis Length is "+ str(value) + " :eggplant:  ", description = penis, colour = discord.Colour.green())
     await ctx.send(embed = embed)
-
+    
 
 @bot.command()
 async def help(ctx):
