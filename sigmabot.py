@@ -4,30 +4,33 @@ import random
 from random import randint
 import discord
 import os
+import json
+import requests
+import urllib.request, urllib.parse, urllib.error
+
+
 
 
 from dotenv import load_dotenv
 from discord.ext import commands
 
 
-#seed(20)
-#randpenis = randint(0, 10)
+
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILD = os.getenv('DISCORD_GUILD')
+TENOR = os.getenv('TENOR_KEY')
 
-#client = discord.Client()
 intents = discord.Intents().all()
 bot = commands.Bot(command_prefix="^", intents = intents)
 bot.remove_command("help")
-#bot = commands.Bot(help_command = None)
+
 
 @bot.command()
 async def ping(ctx):
     await ctx.channel.send('pong! {0}'.format(round(bot.latency,4)) + " ms")
 
-@bot.command()
 @bot.command()
 async def penis(ctx):
     userid = ctx.message.author.id
@@ -40,7 +43,7 @@ async def penis(ctx):
     penis += "D"
     embed = discord.Embed(title = f"{ctx.message.author}'s"+ " Penis Length is "+ str(value) + " :eggplant:  ", description = penis, colour = discord.Colour.green())
     await ctx.send(embed = embed)
-    
+
 
 @bot.command()
 async def help(ctx):
@@ -51,20 +54,48 @@ async def help(ctx):
     )
 
     embed.set_author(name ='Help')
+    embed.add_field(name = '^info', value ='Returns information about the server such as amount of members')
     embed.add_field(name='^ping', value='Returns Pong! along with latency')
     embed.add_field(name = '^penis', value = 'Returns a penis :pensive:')
+    embed.add_field(name = '^gif <argument>', value = 'returns a gif based on what argument is')
 
     await ctx.send(embed = embed)
 
-#@bot.command()
-#async def recipe():
+#command generates gifs based on what arg is
+#gifs are from the tenor api and not for profit
+@bot.command()
+async def gif(ctx, arg):
+    lmt = 30
+    search_term = str(arg)
+    r = requests.get("https://g.tenor.com/v1/search?q=%s&key=%s&limit=%s" % (search_term, TENOR, lmt))
+    if r.status_code == 200:
+        top_30gifs = json.loads(r.content)
+        value = randint(0, lmt - 1)
+        url = top_30gifs['results'][value]['media'][0]['gif']['url']
+        embed = discord.Embed(title = f"result for {search_term}: ", description = "", colour = discord.Colour.blurple())
+        embed.set_image(url = url)
+        await ctx.channel.send(embed = embed)
+    else:
+        top_8gifs = None
 
+
+#command gives server info
 @bot.command()
 async def info(ctx):
     name = str(ctx.guild.name)
     embed = discord.Embed(title = str(ctx.guild.name) + "Server Information", description = "This is a bot testing server", color = discord.Colour.dark_gold())
+    embed.set_thumbnail(url = str(ctx.guild.icon_url))
+    embed.add_field(name = "Owner", value = str(ctx.guild.owner))
+    embed.add_field(name = "Server ID", value = str(ctx.guild.id))
+    embed.add_field(name = "Region", value = str(ctx.guild.region))
+    embed.add_field(name = "Member Count", value = str(ctx.guild.member_count)) 
 
     await ctx.send(embed = embed)
+
+#command generates recipe
+#@bot.command()
+#async def recipe(ctx, arg):
+
 
 @bot.event
 async def on_ready():
@@ -95,5 +126,3 @@ async def on_message(message):
 
 
 bot.run(TOKEN)
-
-
